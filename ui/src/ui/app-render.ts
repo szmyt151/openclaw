@@ -9,8 +9,6 @@ import { loadAgentIdentities, loadAgentIdentity } from "./controllers/agent-iden
 import { loadAgentSkills } from "./controllers/agent-skills.ts";
 import { loadAgents } from "./controllers/agents.ts";
 import { loadChannels } from "./controllers/channels.ts";
-import { loadHostelUsers } from "./controllers/hostel-users.ts";
-import { loadIncidents } from "./controllers/incidents.ts";
 import { loadChatHistory } from "./controllers/chat.ts";
 import {
   applyConfig,
@@ -41,6 +39,8 @@ import {
   saveExecApprovals,
   updateExecApprovalsFormValue,
 } from "./controllers/exec-approvals.ts";
+import { loadHostelUsers } from "./controllers/hostel-users.ts";
+import { loadIncidents } from "./controllers/incidents.ts";
 import { loadLogs } from "./controllers/logs.ts";
 import { loadNodes } from "./controllers/nodes.ts";
 import { loadPresence } from "./controllers/presence.ts";
@@ -70,7 +70,18 @@ import { renderNodes } from "./views/nodes.ts";
 import { renderOverview } from "./views/overview.ts";
 import { renderSessions } from "./views/sessions.ts";
 import { renderSkills } from "./views/skills.ts";
+import { loadUsage, UsageState } from "./controllers/usage.ts";
 
+
+// Module-scope debounce for usage date changes (avoids type-unsafe hacks on state object)
+let usageDateDebounceTimeout: number | null = null;
+const debouncedLoadUsage = (state: UsageState) => {
+  if (usageDateDebounceTimeout) {
+    clearTimeout(usageDateDebounceTimeout);
+  }
+  usageDateDebounceTimeout = window.setTimeout(() => void loadUsage(state), 400);
+};
+  
 const AVATAR_DATA_RE = /^data:/i;
 const AVATAR_HTTP_RE = /^https?:\/\//i;
 
@@ -258,7 +269,8 @@ export function renderApp(state: AppViewState) {
                 hostelUsersLoading: state.hostelUsersLoading,
                 hostelUsersError: state.hostelUsersError,
                 hostelUsers: state.hostelUsers,
-                onAccountsToggle: () => (state.channelsAccountsExpanded = !state.channelsAccountsExpanded),
+                onAccountsToggle: () =>
+                  (state.channelsAccountsExpanded = !state.channelsAccountsExpanded),
                 onUsersToggle: () => (state.channelsUsersExpanded = !state.channelsUsersExpanded),
                 onUsersRefresh: () => loadHostelUsers(state, "hostel-ops-manager"),
                 pairingCenterExpanded: state.pairingCenterExpanded,
@@ -370,7 +382,7 @@ export function renderApp(state: AppViewState) {
                 onRefresh: () => loadIncidents(state),
                 onTimeFilterChange: (filter) => {
                   state.incidentsTimeFilter = filter;
-                  loadIncidents(state);
+                  void loadIncidents(state);
                 },
               })
             : nothing
@@ -733,10 +745,23 @@ export function renderApp(state: AppViewState) {
                 filter: state.agentGraphFilter,
                 selectedNode: state.agentGraphSelectedNode,
                 focusMode: state.agentGraphFocusMode,
+                edgeMode: state.agentGraphEdgeMode,
+                channelAccounts: state.channelsSnapshot?.channelAccounts
+                  ? Object.fromEntries(
+                      Object.entries(state.channelsSnapshot.channelAccounts).map(([key, accounts]) => [
+                        key,
+                        accounts.map((acc) => ({
+                          accountId: acc.accountId,
+                          name: acc.name ?? undefined,
+                        })),
+                      ])
+                    )
+                  : null,
                 onSearchChange: (value) => (state.agentGraphSearch = value),
                 onFilterChange: (filter) => (state.agentGraphFilter = filter),
                 onNodeSelect: (agentId) => (state.agentGraphSelectedNode = agentId),
                 onFocusModeToggle: () => (state.agentGraphFocusMode = !state.agentGraphFocusMode),
+                onEdgeModeChange: (mode) => (state.agentGraphEdgeMode = mode),
               })
             : nothing
         }

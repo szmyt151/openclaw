@@ -361,7 +361,13 @@ export function listAgentsForGateway(cfg: OpenClawConfig): {
   const scope = cfg.session?.scope ?? "per-sender";
   const configuredById = new Map<
     string,
-    { name?: string; identity?: GatewayAgentRow["identity"] }
+    {
+      name?: string;
+      identity?: GatewayAgentRow["identity"];
+      subagents?: GatewayAgentRow["subagents"];
+      sandbox?: GatewayAgentRow["sandbox"];
+      tools?: GatewayAgentRow["tools"];
+    }
   >();
   for (const entry of cfg.agents?.list ?? []) {
     if (!entry?.id) {
@@ -383,6 +389,18 @@ export function listAgentsForGateway(cfg: OpenClawConfig): {
     configuredById.set(normalizeAgentId(entry.id), {
       name: typeof entry.name === "string" && entry.name.trim() ? entry.name.trim() : undefined,
       identity,
+      subagents: entry.subagents,
+      sandbox: entry.sandbox
+        ? {
+            mode: entry.sandbox.mode,
+            workspaceAccess: entry.sandbox.workspaceAccess,
+          }
+        : undefined,
+      tools: entry.tools
+        ? {
+            deny: entry.tools.deny,
+          }
+        : undefined,
     });
   }
   const explicitIds = new Set(
@@ -397,12 +415,30 @@ export function listAgentsForGateway(cfg: OpenClawConfig): {
   if (mainKey && !agentIds.includes(mainKey)) {
     agentIds = [...agentIds, mainKey];
   }
+
+  // Build bindings map
+  const bindingsByAgent = new Map<string, Array<{ channel: string; accountId?: string }>>();
+  for (const binding of cfg.bindings ?? []) {
+    const agentId = normalizeAgentId(binding.agentId);
+    if (!bindingsByAgent.has(agentId)) {
+      bindingsByAgent.set(agentId, []);
+    }
+    bindingsByAgent.get(agentId)!.push({
+      channel: binding.match.channel,
+      accountId: binding.match.accountId,
+    });
+  }
+
   const agents = agentIds.map((id) => {
     const meta = configuredById.get(id);
     return {
       id,
       name: meta?.name,
       identity: meta?.identity,
+      subagents: meta?.subagents,
+      sandbox: meta?.sandbox,
+      tools: meta?.tools,
+      bindings: bindingsByAgent.get(id),
     };
   });
   return { defaultId, mainKey, scope, agents };

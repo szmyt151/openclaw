@@ -223,6 +223,7 @@ export type AppViewState = {
   agentGraphFilter: "all" | "hostel" | "locked";
   agentGraphSelectedNode: string | null;
   agentGraphFocusMode: boolean;
+  agentGraphEdgeMode: "subagent" | "binding" | "both";
   channelsAccountsExpanded: boolean;
   channelsUsersExpanded: boolean;
   hostelUsersLoading: boolean;

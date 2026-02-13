@@ -329,6 +329,7 @@ export class OpenClawApp extends LitElement {
   @state() agentGraphFilter: "all" | "hostel" | "locked" = "all";
   @state() agentGraphSelectedNode: string | null = null;
   @state() agentGraphFocusMode = false;
+  @state() agentGraphEdgeMode: "subagent" | "binding" | "both" = "subagent";
 
   // Channels sections
   @state() channelsAccountsExpanded = false;
