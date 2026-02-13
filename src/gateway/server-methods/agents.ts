@@ -132,6 +132,19 @@ async function listAgentFiles(workspaceDir: string) {
     }
   }
 
+  // Add USERS.md (for hostel-ops-manager role management)
+  const usersPath = path.join(workspaceDir, "USERS.md");
+  const usersMeta = await statFile(usersPath);
+  if (usersMeta) {
+    files.push({
+      name: "USERS.md",
+      path: usersPath,
+      missing: false,
+      size: usersMeta.size,
+      updatedAtMs: usersMeta.updatedAtMs,
+    });
+  }
+
   return files;
 }
 
