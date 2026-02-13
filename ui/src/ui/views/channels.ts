@@ -91,10 +91,14 @@ export function renderChannels(props: ChannelsProps) {
       error: props.devicesError,
       devicesList: props.devicesList,
       expanded: props.pairingCenterExpanded,
+      searchQuery: props.pairingSearchQuery,
+      autoRefresh: props.pairingAutoRefresh,
       onToggle: props.onPairingToggle,
       onRefresh: props.onPairingRefresh,
       onApprove: props.onPairingApprove,
       onReject: props.onPairingReject,
+      onSearchChange: props.onPairingSearchChange,
+      onAutoRefreshToggle: props.onPairingAutoRefreshToggle,
     })}
 
     <section class="card" style="margin-top: 18px;">

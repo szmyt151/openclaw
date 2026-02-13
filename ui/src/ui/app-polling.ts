@@ -1,5 +1,6 @@
 import type { OpenClawApp } from "./app.ts";
 import { loadDebug } from "./controllers/debug.ts";
+import { loadDevices } from "./controllers/devices.ts";
 import { loadLogs } from "./controllers/logs.ts";
 import { loadNodes } from "./controllers/nodes.ts";
 
@@ -7,7 +8,9 @@ type PollingHost = {
   nodesPollInterval: number | null;
   logsPollInterval: number | null;
   debugPollInterval: number | null;
+  pairingPollInterval: number | null;
   tab: string;
+  pairingAutoRefresh: boolean;
 };
 
 export function startNodesPolling(host: PollingHost) {
@@ -66,4 +69,24 @@ export function stopDebugPolling(host: PollingHost) {
   }
   clearInterval(host.debugPollInterval);
   host.debugPollInterval = null;
+}
+
+export function startPairingPolling(host: PollingHost) {
+  if (host.pairingPollInterval != null) {
+    return;
+  }
+  host.pairingPollInterval = window.setInterval(() => {
+    if (!host.pairingAutoRefresh) {
+      return;
+    }
+    void loadDevices(host as unknown as OpenClawApp, { quiet: true });
+  }, 10000);
+}
+
+export function stopPairingPolling(host: PollingHost) {
+  if (host.pairingPollInterval == null) {
+    return;
+  }
+  clearInterval(host.pairingPollInterval);
+  host.pairingPollInterval = null;
 }

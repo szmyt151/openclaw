@@ -230,6 +230,8 @@ export type AppViewState = {
   hostelUsersError: string | null;
   hostelUsers: import("./types.ts").HostelUser[] | null;
   pairingCenterExpanded: boolean;
+  pairingSearchQuery: string;
+  pairingAutoRefresh: boolean;
   cronFilterMode: "all" | "enabled" | "failed" | "search";
   cronSearchQuery: string;
   cronLastRunsExpanded: boolean;

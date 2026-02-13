@@ -340,6 +340,9 @@ export class OpenClawApp extends LitElement {
 
   // Pairing Center
   @state() pairingCenterExpanded = false;
+  @state() pairingSearchQuery = "";
+  @state() pairingAutoRefresh = false;
+  private pairingPollInterval: number | null = null;
 
   // Cron Filters
   @state() cronFilterMode: "all" | "enabled" | "failed" | "search" = "all";

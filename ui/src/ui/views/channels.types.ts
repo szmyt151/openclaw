@@ -44,6 +44,8 @@ export type ChannelsProps = {
   onUsersRefresh: () => void;
   onViewInGraph?: (nodeId: string) => void;
   pairingCenterExpanded: boolean;
+  pairingSearchQuery: string;
+  pairingAutoRefresh: boolean;
   devicesLoading: boolean;
   devicesError: string | null;
   devicesList: import("../controllers/devices.ts").DevicePairingList | null;
@@ -51,6 +53,8 @@ export type ChannelsProps = {
   onPairingRefresh: () => void;
   onPairingApprove: (requestId: string) => void;
   onPairingReject: (requestId: string) => void;
+  onPairingSearchChange: (query: string) => void;
+  onPairingAutoRefreshToggle: () => void;
   onRefresh: (probe: boolean) => void;
   onWhatsAppStart: (force: boolean) => void;
   onWhatsAppWait: () => void;

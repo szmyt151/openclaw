@@ -7,10 +7,14 @@ type Props = {
   error: string | null;
   devicesList: DevicePairingList | null;
   expanded: boolean;
+  searchQuery: string;
+  autoRefresh: boolean;
   onToggle: () => void;
   onRefresh: () => void;
   onApprove: (requestId: string) => void;
   onReject: (requestId: string) => void;
+  onSearchChange: (query: string) => void;
+  onAutoRefreshToggle: () => void;
 };
 
 export function renderPairingCenter({
@@ -18,13 +22,36 @@ export function renderPairingCenter({
   error,
   devicesList,
   expanded,
+  searchQuery,
+  autoRefresh,
   onToggle,
   onRefresh,
   onApprove,
   onReject,
+  onSearchChange,
+  onAutoRefreshToggle,
 }: Props) {
-  const pending = devicesList?.pending ?? [];
-  const paired = devicesList?.paired ?? [];
+  const allPending = devicesList?.pending ?? [];
+  const allPaired = devicesList?.paired ?? [];
+
+  // Apply search filter
+  const searchLower = searchQuery.toLowerCase();
+  const pending = searchQuery.trim()
+    ? allPending.filter(
+        (d) =>
+          d.deviceId.toLowerCase().includes(searchLower) ||
+          (d.displayName?.toLowerCase() ?? "").includes(searchLower) ||
+          (d.role?.toLowerCase() ?? "").includes(searchLower),
+      )
+    : allPending;
+  const paired = searchQuery.trim()
+    ? allPaired.filter(
+        (d) =>
+          d.deviceId.toLowerCase().includes(searchLower) ||
+          (d.displayName?.toLowerCase() ?? "").includes(searchLower) ||
+          (d.roles?.some((r) => r.toLowerCase().includes(searchLower)) ?? false),
+      )
+    : allPaired;
 
   return html`
     <section class="card" style="margin-top: 18px;">
@@ -36,8 +63,16 @@ export function renderPairingCenter({
           </div>
         </div>
         <div style="display: flex; gap: 8px; align-items: center;">
-          ${expanded
-            ? html`
+          ${
+            expanded
+              ? html`
+                <label style="display: flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer;">
+                  <input type="checkbox" .checked=${autoRefresh} @change=${(e: Event) => {
+                    e.stopPropagation();
+                    onAutoRefreshToggle();
+                  }} />
+                  Auto-refresh (10s)
+                </label>
                 <button
                   class="btn"
                   @click=${(e: Event) => {
@@ -49,7 +84,8 @@ export function renderPairingCenter({
                   ${loading ? "Refreshing…" : "Refresh"}
                 </button>
               `
-            : ""}
+              : ""
+          }
           <button
             class="btn"
             @click=${(e: Event) => {
@@ -62,22 +98,44 @@ export function renderPairingCenter({
         </div>
       </div>
 
-      ${expanded && error
-        ? html`
+      ${
+        expanded
+          ? html`
+        <!-- Search bar -->
+        <div style="margin: 16px 0;">
+          <input
+            type="text"
+            placeholder="Search by device ID, name, or role..."
+            .value=${searchQuery}
+            @input=${(e: Event) => onSearchChange((e.target as HTMLInputElement).value)}
+            style="width: 100%; padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-color); color: var(--text-color);"
+          />
+        </div>
+      `
+          : ""
+      }
+
+      ${
+        expanded && error
+          ? html`
             <div class="callout danger" style="margin-top: 12px;">${error}</div>
           `
-        : ""}
+          : ""
+      }
 
-      ${expanded && loading && !devicesList
-        ? html`
-            <div style="margin-top: 16px; text-align: center; opacity: 0.7; padding: 24px;">
-              Loading devices...
-            </div>
-          `
-        : ""}
+      ${
+        expanded && loading && !devicesList
+          ? html`
+              <div style="margin-top: 16px; text-align: center; opacity: 0.7; padding: 24px">
+                Loading devices...
+              </div>
+            `
+          : ""
+      }
 
-      ${expanded && pending.length > 0
-        ? html`
+      ${
+        expanded && pending.length > 0
+          ? html`
             <div style="margin-top: 16px;">
               <h4 style="margin: 0 0 12px 0; font-size: 14px; font-weight: 600;">
                 Pending Requests (${pending.length})
@@ -98,9 +156,9 @@ export function renderPairingCenter({
                     ${pending.map((device, index) => {
                       return html`
                         <tr
-                          style="border-bottom: 1px solid var(--border-color); ${index % 2 === 0
-                            ? "background: var(--bg-secondary);"
-                            : ""}"
+                          style="border-bottom: 1px solid var(--border-color); ${
+                            index % 2 === 0 ? "background: var(--bg-secondary);" : ""
+                          }"
                         >
                           <td style="padding: 8px; font-family: monospace; font-size: 11px;">
                             ${device.deviceId}
@@ -146,18 +204,22 @@ export function renderPairingCenter({
               </div>
             </div>
           `
-        : ""}
+          : ""
+      }
 
-      ${expanded && pending.length === 0
-        ? html`
-            <div style="margin-top: 16px; text-align: center; opacity: 0.7; padding: 24px;">
-              No pending pairing requests.
-            </div>
-          `
-        : ""}
+      ${
+        expanded && pending.length === 0
+          ? html`
+              <div style="margin-top: 16px; text-align: center; opacity: 0.7; padding: 24px">
+                No pending pairing requests.
+              </div>
+            `
+          : ""
+      }
 
-      ${expanded && paired.length > 0
-        ? html`
+      ${
+        expanded && paired.length > 0
+          ? html`
             <div style="margin-top: 16px;">
               <h4 style="margin: 0 0 12px 0; font-size: 14px; font-weight: 600;">
                 Paired Devices (${paired.length})
@@ -176,18 +238,20 @@ export function renderPairingCenter({
                     ${paired.map((device, index) => {
                       return html`
                         <tr
-                          style="border-bottom: 1px solid var(--border-color); ${index % 2 === 0
-                            ? "background: var(--bg-secondary);"
-                            : ""}"
+                          style="border-bottom: 1px solid var(--border-color); ${
+                            index % 2 === 0 ? "background: var(--bg-secondary);" : ""
+                          }"
                         >
                           <td style="padding: 8px; font-family: monospace; font-size: 11px;">
                             ${device.deviceId}
                           </td>
                           <td style="padding: 8px;">${device.displayName ?? "-"}</td>
                           <td style="padding: 8px; font-size: 11px;">
-                            ${device.roles && device.roles.length > 0
-                              ? device.roles.join(", ")
-                              : "-"}
+                            ${
+                              device.roles && device.roles.length > 0
+                                ? device.roles.join(", ")
+                                : "-"
+                            }
                           </td>
                           <td style="padding: 8px; opacity: 0.8; font-size: 11px;">
                             ${device.approvedAtMs ? formatRelativeTimestamp(device.approvedAtMs) : "-"}
@@ -200,7 +264,8 @@ export function renderPairingCenter({
               </div>
             </div>
           `
-        : ""}
+          : ""
+      }
     </section>
   `;
 }

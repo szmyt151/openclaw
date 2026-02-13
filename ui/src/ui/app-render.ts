@@ -279,6 +279,8 @@ export function renderApp(state: AppViewState) {
                   state.agentGraphEdgeMode = "binding";
                 },
                 pairingCenterExpanded: state.pairingCenterExpanded,
+                pairingSearchQuery: state.pairingSearchQuery,
+                pairingAutoRefresh: state.pairingAutoRefresh,
                 devicesLoading: state.devicesLoading,
                 devicesError: state.devicesError,
                 devicesList: state.devicesList,
@@ -286,6 +288,9 @@ export function renderApp(state: AppViewState) {
                 onPairingRefresh: () => loadDevices(state),
                 onPairingApprove: (requestId) => approveDevicePairing(state, requestId),
                 onPairingReject: (requestId) => rejectDevicePairing(state, requestId),
+                onPairingSearchChange: (query) => (state.pairingSearchQuery = query),
+                onPairingAutoRefreshToggle: () =>
+                  (state.pairingAutoRefresh = !state.pairingAutoRefresh),
                 onRefresh: (probe) => loadChannels(state, probe),
                 onWhatsAppStart: (force) => state.handleWhatsAppStart(force),
                 onWhatsAppWait: () => state.handleWhatsAppWait(),
