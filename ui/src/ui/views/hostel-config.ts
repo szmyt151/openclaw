@@ -21,16 +21,6 @@ type Props = {
   onReload: () => void;
 };
 
-function getRoleBadge(role: "administrator" | "pracownik" | "mieszkaniec") {
-  if (role === "administrator") {
-    return { text: "Administrator", color: "#0a7f3f", bg: "#e9f9ef" };
-  }
-  if (role === "pracownik") {
-    return { text: "Pracownik", color: "#9a5d00", bg: "#fff4e5" };
-  }
-  return { text: "Mieszkaniec", color: "#666", bg: "#f5f5f5" };
-}
-
 export function renderHostelConfig(props: Props) {
   const userErrors = new Map<string, ValidationError[]>();
   for (const item of props.validationErrors) {
