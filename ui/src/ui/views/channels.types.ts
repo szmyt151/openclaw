@@ -42,6 +42,7 @@ export type ChannelsProps = {
   onAccountsToggle: () => void;
   onUsersToggle: () => void;
   onUsersRefresh: () => void;
+  onViewInGraph?: (nodeId: string) => void;
   pairingCenterExpanded: boolean;
   devicesLoading: boolean;
   devicesError: string | null;

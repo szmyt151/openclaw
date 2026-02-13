@@ -17,7 +17,6 @@ import type { ChannelKey, ChannelsChannelData, ChannelsProps } from "./channels.
 import { formatRelativeTimestamp } from "../format.ts";
 import { renderChannelsAccounts } from "./channels-accounts.ts";
 import { renderChannelsUsers } from "./channels-users.ts";
-import { renderPairingCenter } from "./pairing-center.ts";
 import { renderChannelConfigSection } from "./channels.config.ts";
 import { renderDiscordCard } from "./channels.discord.ts";
 import { renderGoogleChatCard } from "./channels.googlechat.ts";
@@ -28,6 +27,7 @@ import { renderSignalCard } from "./channels.signal.ts";
 import { renderSlackCard } from "./channels.slack.ts";
 import { renderTelegramCard } from "./channels.telegram.ts";
 import { renderWhatsAppCard } from "./channels.whatsapp.ts";
+import { renderPairingCenter } from "./pairing-center.ts";
 
 export function renderChannels(props: ChannelsProps) {
   const channels = props.snapshot?.channels as Record<string, unknown> | null;
@@ -74,6 +74,7 @@ export function renderChannels(props: ChannelsProps) {
       snapshot: props.snapshot,
       expanded: props.accountsExpanded,
       onToggle: props.onAccountsToggle,
+      onViewInGraph: props.onViewInGraph,
     })}
 
     ${renderChannelsUsers({

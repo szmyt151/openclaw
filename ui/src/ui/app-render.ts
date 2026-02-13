@@ -273,6 +273,11 @@ export function renderApp(state: AppViewState) {
                   (state.channelsAccountsExpanded = !state.channelsAccountsExpanded),
                 onUsersToggle: () => (state.channelsUsersExpanded = !state.channelsUsersExpanded),
                 onUsersRefresh: () => loadHostelUsers(state, "hostel-ops-manager"),
+                onViewInGraph: (nodeId) => {
+                  state.setTab("agent-graph");
+                  state.agentGraphSelectedNode = nodeId;
+                  state.agentGraphEdgeMode = "binding";
+                },
                 pairingCenterExpanded: state.pairingCenterExpanded,
                 devicesLoading: state.devicesLoading,
                 devicesError: state.devicesError,
