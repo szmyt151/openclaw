@@ -16,6 +16,7 @@ import type {
 import type { ChannelKey, ChannelsChannelData, ChannelsProps } from "./channels.types.ts";
 import { formatRelativeTimestamp } from "../format.ts";
 import { renderChannelsAccounts } from "./channels-accounts.ts";
+import { renderChannelsUsers } from "./channels-users.ts";
 import { renderChannelConfigSection } from "./channels.config.ts";
 import { renderDiscordCard } from "./channels.discord.ts";
 import { renderGoogleChatCard } from "./channels.googlechat.ts";
@@ -72,6 +73,15 @@ export function renderChannels(props: ChannelsProps) {
       snapshot: props.snapshot,
       expanded: props.accountsExpanded,
       onToggle: props.onAccountsToggle,
+    })}
+
+    ${renderChannelsUsers({
+      loading: props.hostelUsersLoading,
+      error: props.hostelUsersError,
+      users: props.hostelUsers,
+      expanded: props.usersExpanded,
+      onToggle: props.onUsersToggle,
+      onRefresh: props.onUsersRefresh,
     })}
 
     <section class="card" style="margin-top: 18px;">

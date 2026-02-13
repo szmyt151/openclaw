@@ -35,7 +35,13 @@ export type ChannelsProps = {
   nostrProfileFormState: NostrProfileFormState | null;
   nostrProfileAccountId: string | null;
   accountsExpanded: boolean;
+  usersExpanded: boolean;
+  hostelUsersLoading: boolean;
+  hostelUsersError: string | null;
+  hostelUsers: import("../types.ts").HostelUser[] | null;
   onAccountsToggle: () => void;
+  onUsersToggle: () => void;
+  onUsersRefresh: () => void;
   onRefresh: (probe: boolean) => void;
   onWhatsAppStart: (force: boolean) => void;
   onWhatsAppWait: () => void;

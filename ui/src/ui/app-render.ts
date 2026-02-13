@@ -9,6 +9,7 @@ import { loadAgentIdentities, loadAgentIdentity } from "./controllers/agent-iden
 import { loadAgentSkills } from "./controllers/agent-skills.ts";
 import { loadAgents } from "./controllers/agents.ts";
 import { loadChannels } from "./controllers/channels.ts";
+import { loadHostelUsers } from "./controllers/hostel-users.ts";
 import { loadChatHistory } from "./controllers/chat.ts";
 import {
   applyConfig,
@@ -251,7 +252,13 @@ export function renderApp(state: AppViewState) {
                 nostrProfileFormState: state.nostrProfileFormState,
                 nostrProfileAccountId: state.nostrProfileAccountId,
                 accountsExpanded: state.channelsAccountsExpanded,
+                usersExpanded: state.channelsUsersExpanded,
+                hostelUsersLoading: state.hostelUsersLoading,
+                hostelUsersError: state.hostelUsersError,
+                hostelUsers: state.hostelUsers,
                 onAccountsToggle: () => (state.channelsAccountsExpanded = !state.channelsAccountsExpanded),
+                onUsersToggle: () => (state.channelsUsersExpanded = !state.channelsUsersExpanded),
+                onUsersRefresh: () => loadHostelUsers(state, "hostel-ops-manager"),
                 onRefresh: (probe) => loadChannels(state, probe),
                 onWhatsAppStart: (force) => state.handleWhatsAppStart(force),
                 onWhatsAppWait: () => state.handleWhatsAppWait(),
