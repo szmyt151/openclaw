@@ -18,6 +18,9 @@ export type CronProps = {
   channelMeta?: ChannelUiMetaEntry[];
   runsJobId: string | null;
   runs: CronRunLogEntry[];
+  filterMode: "all" | "enabled" | "failed" | "search";
+  searchQuery: string;
+  lastRunsExpanded: boolean;
   onFormChange: (patch: Partial<CronFormState>) => void;
   onRefresh: () => void;
   onAdd: () => void;
@@ -25,6 +28,9 @@ export type CronProps = {
   onRun: (job: CronJob) => void;
   onRemove: (job: CronJob) => void;
   onLoadRuns: (jobId: string) => void;
+  onFilterChange: (mode: "all" | "enabled" | "failed" | "search") => void;
+  onSearchChange: (query: string) => void;
+  onLastRunsToggle: () => void;
 };
 
 function buildChannelOptions(props: CronProps): string[] {
@@ -60,6 +66,35 @@ export function renderCron(props: CronProps) {
     props.runsJobId == null ? undefined : props.jobs.find((job) => job.id === props.runsJobId);
   const selectedRunTitle = selectedJob?.name ?? props.runsJobId ?? "(select a job)";
   const orderedRuns = props.runs.toSorted((a, b) => b.ts - a.ts);
+
+  // Apply filters
+  let filteredJobs = props.jobs;
+  if (props.filterMode === "enabled") {
+    filteredJobs = filteredJobs.filter((job) => job.enabled);
+  } else if (props.filterMode === "failed") {
+    filteredJobs = filteredJobs.filter((job) => job.state?.lastStatus === "error");
+  } else if (props.filterMode === "search" && props.searchQuery.trim()) {
+    const query = props.searchQuery.toLowerCase();
+    filteredJobs = filteredJobs.filter(
+      (job) =>
+        job.name.toLowerCase().includes(query) ||
+        job.id.toLowerCase().includes(query) ||
+        (job.agentId?.toLowerCase() ?? "").includes(query)
+    );
+  }
+
+  // Collect last runs from all jobs
+  const allLastRuns = props.jobs
+    .filter((job) => job.state?.lastRunAtMs && job.state?.lastStatus)
+    .map((job) => ({
+      jobId: job.id,
+      jobName: job.name,
+      status: job.state!.lastStatus!,
+      ts: job.state!.lastRunAtMs!,
+      durationMs: job.state?.lastDurationMs,
+    }))
+    .toSorted((a, b) => b.ts - a.ts);
+
   return html`
     <section class="grid grid-cols-2">
       <div class="card">
@@ -275,17 +310,123 @@ export function renderCron(props: CronProps) {
     <section class="card" style="margin-top: 18px;">
       <div class="card-title">Jobs</div>
       <div class="card-sub">All scheduled jobs stored in the gateway.</div>
+
+      <!-- Filter chips -->
+      <div style="display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap;">
+        <button
+          class="chip ${props.filterMode === "all" ? "chip-primary" : ""}"
+          @click=${() => props.onFilterChange("all")}
+          style="cursor: pointer; border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 999px; background: ${props.filterMode === "all" ? "var(--accent-color)" : "transparent"}; color: ${props.filterMode === "all" ? "white" : "var(--text-color)"};"
+        >
+          All (${props.jobs.length})
+        </button>
+        <button
+          class="chip ${props.filterMode === "enabled" ? "chip-primary" : ""}"
+          @click=${() => props.onFilterChange("enabled")}
+          style="cursor: pointer; border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 999px; background: ${props.filterMode === "enabled" ? "var(--accent-color)" : "transparent"}; color: ${props.filterMode === "enabled" ? "white" : "var(--text-color)"};"
+        >
+          Enabled only (${props.jobs.filter((j) => j.enabled).length})
+        </button>
+        <button
+          class="chip ${props.filterMode === "failed" ? "chip-primary" : ""}"
+          @click=${() => props.onFilterChange("failed")}
+          style="cursor: pointer; border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 999px; background: ${props.filterMode === "failed" ? "var(--accent-color)" : "transparent"}; color: ${props.filterMode === "failed" ? "white" : "var(--text-color)"};"
+        >
+          Failed only (${props.jobs.filter((j) => j.state?.lastStatus === "error").length})
+        </button>
+        <button
+          class="chip ${props.filterMode === "search" ? "chip-primary" : ""}"
+          @click=${() => props.onFilterChange("search")}
+          style="cursor: pointer; border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 999px; background: ${props.filterMode === "search" ? "var(--accent-color)" : "transparent"}; color: ${props.filterMode === "search" ? "white" : "var(--text-color)"};"
+        >
+          Search
+        </button>
+      </div>
+
+      <!-- Search input (visible when search mode active) -->
+      ${props.filterMode === "search" ? html`
+        <div style="margin-top: 12px;">
+          <input
+            type="text"
+            placeholder="Search jobs by name, ID, or agent..."
+            .value=${props.searchQuery}
+            @input=${(e: Event) => props.onSearchChange((e.target as HTMLInputElement).value)}
+            style="width: 100%; padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-color); color: var(--text-color);"
+          />
+        </div>
+      ` : ""}
+
       ${
-        props.jobs.length === 0
+        filteredJobs.length === 0
           ? html`
-              <div class="muted" style="margin-top: 12px">No jobs yet.</div>
+              <div class="muted" style="margin-top: 12px">No jobs found.</div>
             `
           : html`
             <div class="list" style="margin-top: 12px;">
-              ${props.jobs.map((job) => renderJob(job, props))}
+              ${filteredJobs.map((job) => renderJob(job, props))}
             </div>
           `
       }
+    </section>
+
+    <section class="card" style="margin-top: 18px;">
+      <div class="row" style="justify-content: space-between; cursor: pointer;" @click=${props.onLastRunsToggle}>
+        <div>
+          <div class="card-title">Last Runs Summary</div>
+          <div class="card-sub">Most recent run for each job (${allLastRuns.length} runs).</div>
+        </div>
+        <button class="btn" @click=${(e: Event) => { e.stopPropagation(); props.onLastRunsToggle(); }}>
+          ${props.lastRunsExpanded ? "Collapse" : "Expand"}
+        </button>
+      </div>
+
+      ${props.lastRunsExpanded && allLastRuns.length > 0 ? html`
+        <div style="margin-top: 16px; overflow-x: auto;">
+          <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+            <thead>
+              <tr style="border-bottom: 2px solid var(--border-color);">
+                <th style="text-align: left; padding: 8px; font-weight: 600;">Job</th>
+                <th style="text-align: left; padding: 8px; font-weight: 600;">Status</th>
+                <th style="text-align: left; padding: 8px; font-weight: 600;">Timestamp</th>
+                <th style="text-align: left; padding: 8px; font-weight: 600;">Duration</th>
+                <th style="text-align: left; padding: 8px; font-weight: 600;">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${allLastRuns.map((run, index) => {
+                const statusClass = run.status === "ok" ? "#0a7f3f" : run.status === "error" ? "#8a1c1c" : "#9a5d00";
+                return html`
+                  <tr style="border-bottom: 1px solid var(--border-color); ${index % 2 === 0 ? 'background: var(--bg-secondary);' : ''}">
+                    <td style="padding: 8px; font-weight: 500;">${run.jobName}</td>
+                    <td style="padding: 8px;">
+                      <span style="font-size: 10px; padding: 3px 8px; border-radius: 999px; background: ${statusClass}15; color: ${statusClass}; font-weight: 600; border: 1px solid ${statusClass}40;">
+                        ${run.status}
+                      </span>
+                    </td>
+                    <td style="padding: 8px; opacity: 0.8; font-size: 11px;">${formatRelativeTimestamp(run.ts)}</td>
+                    <td style="padding: 8px; opacity: 0.8; font-size: 11px;">${run.durationMs ?? 0}ms</td>
+                    <td style="padding: 8px;">
+                      <button
+                        class="btn btn-sm"
+                        style="padding: 4px 10px; font-size: 12px;"
+                        @click=${() => props.onLoadRuns(run.jobId)}
+                      >
+                        Open runs
+                      </button>
+                    </td>
+                  </tr>
+                `;
+              })}
+            </tbody>
+          </table>
+        </div>
+      ` : ""}
+
+      ${props.lastRunsExpanded && allLastRuns.length === 0 ? html`
+        <div style="margin-top: 16px; text-align: center; opacity: 0.7; padding: 24px;">
+          No run history yet.
+        </div>
+      ` : ""}
     </section>
 
     <section class="card" style="margin-top: 18px;">
