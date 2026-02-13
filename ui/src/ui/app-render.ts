@@ -250,6 +250,8 @@ export function renderApp(state: AppViewState) {
                 configFormDirty: state.configFormDirty,
                 nostrProfileFormState: state.nostrProfileFormState,
                 nostrProfileAccountId: state.nostrProfileAccountId,
+                accountsExpanded: state.channelsAccountsExpanded,
+                onAccountsToggle: () => (state.channelsAccountsExpanded = !state.channelsAccountsExpanded),
                 onRefresh: (probe) => loadChannels(state, probe),
                 onWhatsAppStart: (force) => state.handleWhatsAppStart(force),
                 onWhatsAppWait: () => state.handleWhatsAppWait(),

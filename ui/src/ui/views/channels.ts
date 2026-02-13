@@ -15,6 +15,7 @@ import type {
 } from "../types.ts";
 import type { ChannelKey, ChannelsChannelData, ChannelsProps } from "./channels.types.ts";
 import { formatRelativeTimestamp } from "../format.ts";
+import { renderChannelsAccounts } from "./channels-accounts.ts";
 import { renderChannelConfigSection } from "./channels.config.ts";
 import { renderDiscordCard } from "./channels.discord.ts";
 import { renderGoogleChatCard } from "./channels.googlechat.ts";
@@ -66,6 +67,12 @@ export function renderChannels(props: ChannelsProps) {
         }),
       )}
     </section>
+
+    ${renderChannelsAccounts({
+      snapshot: props.snapshot,
+      expanded: props.accountsExpanded,
+      onToggle: props.onAccountsToggle,
+    })}
 
     <section class="card" style="margin-top: 18px;">
       <div class="row" style="justify-content: space-between;">
