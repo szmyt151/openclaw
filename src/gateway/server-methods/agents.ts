@@ -521,4 +521,9 @@ export const agentsHandlers: GatewayRequestHandlers = {
       undefined,
     );
   },
+  // Alias for agents.files.set (used by UI for clarity)
+  "agents.files.save": async ({ params, respond }) => {
+    // Delegate to agents.files.set
+    return agentsHandlers["agents.files.set"]?.({ params, respond });
+  },
 };
