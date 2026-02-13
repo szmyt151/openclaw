@@ -71,22 +71,6 @@ export function renderChannels(props: ChannelsProps) {
       )}
     </section>
 
-    ${renderChannelsAccounts({
-      snapshot: props.snapshot,
-      expanded: props.accountsExpanded,
-      onToggle: props.onAccountsToggle,
-      onViewInGraph: props.onViewInGraph,
-    })}
-
-    ${renderChannelsUsers({
-      loading: props.hostelUsersLoading,
-      error: props.hostelUsersError,
-      users: props.hostelUsers,
-      expanded: props.usersExpanded,
-      onToggle: props.onUsersToggle,
-      onRefresh: props.onUsersRefresh,
-    })}
-
     ${renderHostelConfig({
       loading: props.hostelUsersLoading,
       saving: props.hostelConfigSaving,
@@ -105,6 +89,22 @@ export function renderChannels(props: ChannelsProps) {
       onUpdateUser: props.onHostelConfigUpdateUser,
       onSave: props.onHostelConfigSave,
       onReload: props.onHostelConfigReload,
+    })}
+
+    ${renderChannelsAccounts({
+      snapshot: props.snapshot,
+      expanded: props.accountsExpanded,
+      onToggle: props.onAccountsToggle,
+      onViewInGraph: props.onViewInGraph,
+    })}
+
+    ${renderChannelsUsers({
+      loading: props.hostelUsersLoading,
+      error: props.hostelUsersError,
+      users: props.hostelUsers,
+      expanded: props.usersExpanded,
+      onToggle: props.onUsersToggle,
+      onRefresh: props.onUsersRefresh,
     })}
 
     ${renderPairingCenter({
