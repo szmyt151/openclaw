@@ -42,6 +42,14 @@ export type ChannelsProps = {
   onAccountsToggle: () => void;
   onUsersToggle: () => void;
   onUsersRefresh: () => void;
+  pairingCenterExpanded: boolean;
+  devicesLoading: boolean;
+  devicesError: string | null;
+  devicesList: import("../controllers/devices.ts").DevicePairingList | null;
+  onPairingToggle: () => void;
+  onPairingRefresh: () => void;
+  onPairingApprove: (requestId: string) => void;
+  onPairingReject: (requestId: string) => void;
   onRefresh: (probe: boolean) => void;
   onWhatsAppStart: (force: boolean) => void;
   onWhatsAppWait: () => void;

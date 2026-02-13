@@ -17,6 +17,7 @@ import type { ChannelKey, ChannelsChannelData, ChannelsProps } from "./channels.
 import { formatRelativeTimestamp } from "../format.ts";
 import { renderChannelsAccounts } from "./channels-accounts.ts";
 import { renderChannelsUsers } from "./channels-users.ts";
+import { renderPairingCenter } from "./pairing-center.ts";
 import { renderChannelConfigSection } from "./channels.config.ts";
 import { renderDiscordCard } from "./channels.discord.ts";
 import { renderGoogleChatCard } from "./channels.googlechat.ts";
@@ -82,6 +83,17 @@ export function renderChannels(props: ChannelsProps) {
       expanded: props.usersExpanded,
       onToggle: props.onUsersToggle,
       onRefresh: props.onUsersRefresh,
+    })}
+
+    ${renderPairingCenter({
+      loading: props.devicesLoading,
+      error: props.devicesError,
+      devicesList: props.devicesList,
+      expanded: props.pairingCenterExpanded,
+      onToggle: props.onPairingToggle,
+      onRefresh: props.onPairingRefresh,
+      onApprove: props.onPairingApprove,
+      onReject: props.onPairingReject,
     })}
 
     <section class="card" style="margin-top: 18px;">
