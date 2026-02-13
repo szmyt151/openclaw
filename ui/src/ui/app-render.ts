@@ -39,7 +39,7 @@ import {
   saveExecApprovals,
   updateExecApprovalsFormValue,
 } from "./controllers/exec-approvals.ts";
-import { loadHostelUsers } from "./controllers/hostel-users.ts";
+import { loadHostelUsers, saveHostelUsers, validateUser } from "./controllers/hostel-users.ts";
 import { loadIncidents } from "./controllers/incidents.ts";
 import { loadLogs } from "./controllers/logs.ts";
 import { loadNodes } from "./controllers/nodes.ts";
@@ -52,10 +52,11 @@ import {
   updateSkillEdit,
   updateSkillEnabled,
 } from "./controllers/skills.ts";
+import { loadUsage, UsageState } from "./controllers/usage.ts";
 import { icons } from "./icons.ts";
 import { normalizeBasePath, TAB_GROUPS, subtitleForTab, titleForTab } from "./navigation.ts";
-import { renderAgents } from "./views/agents.ts";
 import { renderAgentGraph } from "./views/agent-graph.ts";
+import { renderAgents } from "./views/agents.ts";
 import { renderChannels } from "./views/channels.ts";
 import { renderChat } from "./views/chat.ts";
 import { renderConfig } from "./views/config.ts";
@@ -63,6 +64,7 @@ import { renderCron } from "./views/cron.ts";
 import { renderDebug } from "./views/debug.ts";
 import { renderExecApprovalPrompt } from "./views/exec-approval.ts";
 import { renderGatewayUrlConfirmation } from "./views/gateway-url-confirmation.ts";
+import { renderHostelConfig } from "./views/hostel-config.ts";
 import { renderIncidents } from "./views/incidents.ts";
 import { renderInstances } from "./views/instances.ts";
 import { renderLogs } from "./views/logs.ts";
@@ -70,8 +72,6 @@ import { renderNodes } from "./views/nodes.ts";
 import { renderOverview } from "./views/overview.ts";
 import { renderSessions } from "./views/sessions.ts";
 import { renderSkills } from "./views/skills.ts";
-import { loadUsage, UsageState } from "./controllers/usage.ts";
-
 
 // Module-scope debounce for usage date changes (avoids type-unsafe hacks on state object)
 let usageDateDebounceTimeout: number | null = null;
@@ -81,7 +81,7 @@ const debouncedLoadUsage = (state: UsageState) => {
   }
   usageDateDebounceTimeout = window.setTimeout(() => void loadUsage(state), 400);
 };
-  
+
 const AVATAR_DATA_RE = /^data:/i;
 const AVATAR_HTTP_RE = /^https?:\/\//i;
 
@@ -273,6 +273,102 @@ export function renderApp(state: AppViewState) {
                   (state.channelsAccountsExpanded = !state.channelsAccountsExpanded),
                 onUsersToggle: () => (state.channelsUsersExpanded = !state.channelsUsersExpanded),
                 onUsersRefresh: () => loadHostelUsers(state, "hostel-ops-manager"),
+                hostelConfigExpanded: state.hostelConfigExpanded,
+                hostelConfigEditingUsers: state.hostelConfigEditingUsers,
+                hostelConfigValidationErrors: state.hostelConfigValidationErrors,
+                hostelConfigSaving: state.hostelUsersSaving,
+                hostelConfigSaveError: state.hostelUsersSaveError,
+                onHostelConfigToggle: () => {
+                  state.hostelConfigExpanded = !state.hostelConfigExpanded;
+                  // Auto-load on first expand
+                  if (
+                    state.hostelConfigExpanded &&
+                    state.hostelUsers &&
+                    state.hostelConfigEditingUsers.length === 0
+                  ) {
+                    state.hostelConfigEditingUsers = JSON.parse(JSON.stringify(state.hostelUsers));
+                  }
+                },
+                onHostelConfigRefresh: async () => {
+                  await loadHostelUsers(state, "hostel-ops-manager");
+                  if (state.hostelUsers) {
+                    state.hostelConfigEditingUsers = JSON.parse(JSON.stringify(state.hostelUsers));
+                    state.hostelConfigValidationErrors = [];
+                  }
+                },
+                onHostelConfigAddUser: () => {
+                  state.hostelConfigEditingUsers = [
+                    ...state.hostelConfigEditingUsers,
+                    { userId: "", role: "mieszkaniec", permissions: [] },
+                  ];
+                },
+                onHostelConfigRemoveUser: (userId) => {
+                  state.hostelConfigEditingUsers = state.hostelConfigEditingUsers.filter(
+                    (u) => u.userId !== userId,
+                  );
+                },
+                onHostelConfigUpdateUser: (userId, patch) => {
+                  const index = state.hostelConfigEditingUsers.findIndex(
+                    (u) => u.userId === userId,
+                  );
+                  if (index >= 0) {
+                    const oldUser = state.hostelConfigEditingUsers[index];
+                    const newUser = { ...oldUser, ...patch };
+                    state.hostelConfigEditingUsers = [
+                      ...state.hostelConfigEditingUsers.slice(0, index),
+                      newUser,
+                      ...state.hostelConfigEditingUsers.slice(index + 1),
+                    ];
+                    // Re-validate on change
+                    const errors: Array<{
+                      userId: string;
+                      errors: import("./controllers/hostel-users.js").ValidationError[];
+                    }> = [];
+                    for (const user of state.hostelConfigEditingUsers) {
+                      const userErrors = validateUser(user);
+                      if (userErrors.length > 0) {
+                        errors.push({ userId: user.userId, errors: userErrors });
+                      }
+                    }
+                    state.hostelConfigValidationErrors = errors;
+                  }
+                },
+                onHostelConfigSave: async () => {
+                  // Validate all users
+                  const errors: Array<{
+                    userId: string;
+                    errors: import("./controllers/hostel-users.js").ValidationError[];
+                  }> = [];
+                  for (const user of state.hostelConfigEditingUsers) {
+                    const userErrors = validateUser(user);
+                    if (userErrors.length > 0) {
+                      errors.push({ userId: user.userId, errors: userErrors });
+                    }
+                  }
+                  state.hostelConfigValidationErrors = errors;
+
+                  if (errors.length > 0) {
+                    return;
+                  }
+
+                  const result = await saveHostelUsers(
+                    state,
+                    "hostel-ops-manager",
+                    state.hostelConfigEditingUsers,
+                  );
+                  if (result.success) {
+                    state.hostelConfigSaveError = null;
+                    await loadHostelUsers(state, "hostel-ops-manager");
+                  } else {
+                    state.hostelConfigSaveError = result.error ?? "Unknown error";
+                  }
+                },
+                onHostelConfigReload: () => {
+                  if (state.hostelUsers) {
+                    state.hostelConfigEditingUsers = JSON.parse(JSON.stringify(state.hostelUsers));
+                    state.hostelConfigValidationErrors = [];
+                  }
+                },
                 onViewInGraph: (nodeId) => {
                   state.setTab("agent-graph");
                   state.agentGraphSelectedNode = nodeId;
@@ -758,13 +854,15 @@ export function renderApp(state: AppViewState) {
                 edgeMode: state.agentGraphEdgeMode,
                 channelAccounts: state.channelsSnapshot?.channelAccounts
                   ? Object.fromEntries(
-                      Object.entries(state.channelsSnapshot.channelAccounts).map(([key, accounts]) => [
-                        key,
-                        accounts.map((acc) => ({
-                          accountId: acc.accountId,
-                          name: acc.name ?? undefined,
-                        })),
-                      ])
+                      Object.entries(state.channelsSnapshot.channelAccounts).map(
+                        ([key, accounts]) => [
+                          key,
+                          accounts.map((acc) => ({
+                            accountId: acc.accountId,
+                            name: acc.name ?? undefined,
+                          })),
+                        ],
+                      ),
                     )
                   : null,
                 onSearchChange: (value) => (state.agentGraphSearch = value),

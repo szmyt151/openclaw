@@ -39,9 +39,27 @@ export type ChannelsProps = {
   hostelUsersLoading: boolean;
   hostelUsersError: string | null;
   hostelUsers: import("../types.ts").HostelUser[] | null;
+  hostelConfigExpanded: boolean;
+  hostelConfigEditingUsers: import("../types.ts").HostelUser[];
+  hostelConfigValidationErrors: Array<{
+    userId: string;
+    errors: import("../controllers/hostel-users.ts").ValidationError[];
+  }>;
+  hostelConfigSaving: boolean;
+  hostelConfigSaveError: string | null;
   onAccountsToggle: () => void;
   onUsersToggle: () => void;
   onUsersRefresh: () => void;
+  onHostelConfigToggle: () => void;
+  onHostelConfigRefresh: () => void;
+  onHostelConfigAddUser: () => void;
+  onHostelConfigRemoveUser: (userId: string) => void;
+  onHostelConfigUpdateUser: (
+    userId: string,
+    patch: Partial<import("../types.ts").HostelUser>,
+  ) => void;
+  onHostelConfigSave: () => void;
+  onHostelConfigReload: () => void;
   onViewInGraph?: (nodeId: string) => void;
   pairingCenterExpanded: boolean;
   pairingSearchQuery: string;

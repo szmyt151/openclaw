@@ -229,6 +229,14 @@ export type AppViewState = {
   hostelUsersLoading: boolean;
   hostelUsersError: string | null;
   hostelUsers: import("./types.ts").HostelUser[] | null;
+  hostelUsersSaving: boolean;
+  hostelUsersSaveError: string | null;
+  hostelConfigExpanded: boolean;
+  hostelConfigEditingUsers: import("./types.ts").HostelUser[];
+  hostelConfigValidationErrors: Array<{
+    userId: string;
+    errors: import("./controllers/hostel-users.ts").ValidationError[];
+  }>;
   pairingCenterExpanded: boolean;
   pairingSearchQuery: string;
   pairingAutoRefresh: boolean;

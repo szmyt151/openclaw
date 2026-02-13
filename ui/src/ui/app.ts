@@ -337,6 +337,14 @@ export class OpenClawApp extends LitElement {
   @state() hostelUsersLoading = false;
   @state() hostelUsersError: string | null = null;
   @state() hostelUsers: import("./types.js").HostelUser[] | null = null;
+  @state() hostelUsersSaving = false;
+  @state() hostelUsersSaveError: string | null = null;
+  @state() hostelConfigExpanded = false;
+  @state() hostelConfigEditingUsers: import("./types.js").HostelUser[] = [];
+  @state() hostelConfigValidationErrors: Array<{
+    userId: string;
+    errors: import("./controllers/hostel-users.js").ValidationError[];
+  }> = [];
 
   // Pairing Center
   @state() pairingCenterExpanded = false;

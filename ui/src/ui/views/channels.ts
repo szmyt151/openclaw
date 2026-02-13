@@ -27,6 +27,7 @@ import { renderSignalCard } from "./channels.signal.ts";
 import { renderSlackCard } from "./channels.slack.ts";
 import { renderTelegramCard } from "./channels.telegram.ts";
 import { renderWhatsAppCard } from "./channels.whatsapp.ts";
+import { renderHostelConfig } from "./hostel-config.ts";
 import { renderPairingCenter } from "./pairing-center.ts";
 
 export function renderChannels(props: ChannelsProps) {
@@ -84,6 +85,26 @@ export function renderChannels(props: ChannelsProps) {
       expanded: props.usersExpanded,
       onToggle: props.onUsersToggle,
       onRefresh: props.onUsersRefresh,
+    })}
+
+    ${renderHostelConfig({
+      loading: props.hostelUsersLoading,
+      saving: props.hostelConfigSaving,
+      error: props.hostelUsersError,
+      saveError: props.hostelConfigSaveError,
+      users: props.hostelUsers,
+      editingUsers: props.hostelConfigEditingUsers,
+      validationErrors: props.hostelConfigValidationErrors,
+      hasChanges:
+        JSON.stringify(props.hostelUsers) !== JSON.stringify(props.hostelConfigEditingUsers),
+      expanded: props.hostelConfigExpanded,
+      onToggle: props.onHostelConfigToggle,
+      onRefresh: props.onHostelConfigRefresh,
+      onAddUser: props.onHostelConfigAddUser,
+      onRemoveUser: props.onHostelConfigRemoveUser,
+      onUpdateUser: props.onHostelConfigUpdateUser,
+      onSave: props.onHostelConfigSave,
+      onReload: props.onHostelConfigReload,
     })}
 
     ${renderPairingCenter({
