@@ -690,8 +690,12 @@ export function renderApp(state: AppViewState) {
                 onRefresh: () => loadAgents(state),
                 search: state.agentGraphSearch,
                 filter: state.agentGraphFilter,
+                selectedNode: state.agentGraphSelectedNode,
+                focusMode: state.agentGraphFocusMode,
                 onSearchChange: (value) => (state.agentGraphSearch = value),
                 onFilterChange: (filter) => (state.agentGraphFilter = filter),
+                onNodeSelect: (agentId) => (state.agentGraphSelectedNode = agentId),
+                onFocusModeToggle: () => (state.agentGraphFocusMode = !state.agentGraphFocusMode),
               })
             : nothing
         }
