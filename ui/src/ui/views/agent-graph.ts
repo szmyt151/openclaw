@@ -32,6 +32,7 @@ export function renderAgentGraph({ loading, error, agentsList, onRefresh }: Prop
     const allowed = agent.subagents?.allowAgents ?? [];
     return allowed.map((child) => ({ from: agent.id, to: child }));
   });
+  const hostelAgents = agents.filter((a) => a.id === "hostel-ops-manager" || a.id.startsWith("hostel-") || a.id === "email-clerk" || a.id === "building-dispatch" || a.id === "tenant-support" || a.id === "staff-coordinator" || a.id === "reporting-analyst");
 
   return html`
     <section class="panel">
@@ -43,6 +44,11 @@ export function renderAgentGraph({ loading, error, agentsList, onRefresh }: Prop
 
       <div class="panel-body">
         <p class="muted">Nodes = agenci. Krawędzie = kto może odpalać którego subagenta.</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 12px 0;">
+          <span class="mono" style="font-size:12px;padding:4px 8px;border:1px solid var(--border-color);border-radius:8px;">agents: ${agents.length}</span>
+          <span class="mono" style="font-size:12px;padding:4px 8px;border:1px solid var(--border-color);border-radius:8px;">edges: ${edges.length}</span>
+          <span class="mono" style="font-size:12px;padding:4px 8px;border:1px solid var(--border-color);border-radius:8px;">hostel-scope: ${hostelAgents.length}</span>
+        </div>
         <div class="grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;">
           ${agents.map((agent) => {
             const children = agent.subagents?.allowAgents ?? [];
@@ -63,6 +69,13 @@ export function renderAgentGraph({ loading, error, agentsList, onRefresh }: Prop
               </div>
             `;
           })}
+        </div>
+
+        <div style="margin-top:14px;">
+          <h4 style="margin:0 0 8px 0;">Hostel scope</h4>
+          ${hostelAgents.length
+            ? html`<ul style="margin:0 0 0 16px;">${hostelAgents.map((a) => html`<li class="mono">${a.id}</li>`)}</ul>`
+            : html`<div style="opacity:.7;">Brak agentów hostelowych.</div>`}
         </div>
 
         <div style="margin-top:14px;">
