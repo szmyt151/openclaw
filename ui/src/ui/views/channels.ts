@@ -55,21 +55,21 @@ export function renderChannels(props: ChannelsProps) {
     });
 
   return html`
-    <section class="grid grid-cols-2">
-      ${orderedChannels.map((channel) =>
-        renderChannel(channel.key, props, {
-          whatsapp,
-          telegram,
-          discord,
-          googlechat,
-          slack,
-          signal,
-          imessage,
-          nostr,
-          channelAccounts: props.snapshot?.channelAccounts ?? null,
-        }),
-      )}
-    </section>
+    ${renderChannelsAccounts({
+      snapshot: props.snapshot,
+      expanded: props.accountsExpanded,
+      onToggle: props.onAccountsToggle,
+      onViewInGraph: props.onViewInGraph,
+    })}
+
+    ${renderChannelsUsers({
+      loading: props.hostelUsersLoading,
+      error: props.hostelUsersError,
+      users: props.hostelUsers,
+      expanded: props.usersExpanded,
+      onToggle: props.onUsersToggle,
+      onRefresh: props.onUsersRefresh,
+    })}
 
     ${renderHostelConfig({
       loading: props.hostelUsersLoading,
@@ -91,22 +91,6 @@ export function renderChannels(props: ChannelsProps) {
       onReload: props.onHostelConfigReload,
     })}
 
-    ${renderChannelsAccounts({
-      snapshot: props.snapshot,
-      expanded: props.accountsExpanded,
-      onToggle: props.onAccountsToggle,
-      onViewInGraph: props.onViewInGraph,
-    })}
-
-    ${renderChannelsUsers({
-      loading: props.hostelUsersLoading,
-      error: props.hostelUsersError,
-      users: props.hostelUsers,
-      expanded: props.usersExpanded,
-      onToggle: props.onUsersToggle,
-      onRefresh: props.onUsersRefresh,
-    })}
-
     ${renderPairingCenter({
       loading: props.devicesLoading,
       error: props.devicesError,
@@ -121,7 +105,22 @@ export function renderChannels(props: ChannelsProps) {
       onSearchChange: props.onPairingSearchChange,
       onAutoRefreshToggle: props.onPairingAutoRefreshToggle,
     })}
-
+  <section class="grid grid-cols-2">
+      ${orderedChannels.map((channel) =>
+        renderChannel(channel.key, props, {
+          whatsapp,
+          telegram,
+          discord,
+          googlechat,
+          slack,
+          signal,
+          imessage,
+          nostr,
+          channelAccounts: props.snapshot?.channelAccounts ?? null,
+        }),
+      )}
+    </section>
+    
     <section class="card" style="margin-top: 18px;">
       <div class="row" style="justify-content: space-between;">
         <div>
