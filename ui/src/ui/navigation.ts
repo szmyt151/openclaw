@@ -4,7 +4,7 @@ export const TAB_GROUPS = [
   { label: "Chat", tabs: ["chat"] },
   {
     label: "Control",
-    tabs: ["overview", "channels", "instances", "sessions", "usage", "cron"],
+    tabs: ["overview", "channels", "instances", "sessions", "usage", "cron", "incidents"],
   },
   { label: "Agent", tabs: ["agents", "agent-graph", "skills", "nodes"] },
   { label: "Settings", tabs: ["config", "debug", "logs"] },
@@ -19,6 +19,7 @@ export type Tab =
   | "sessions"
   | "usage"
   | "cron"
+  | "incidents"
   | "skills"
   | "nodes"
   | "chat"
@@ -35,6 +36,7 @@ const TAB_PATHS: Record<Tab, string> = {
   sessions: "/sessions",
   usage: "/usage",
   cron: "/cron",
+  incidents: "/incidents",
   skills: "/skills",
   nodes: "/nodes",
   chat: "/chat",
@@ -177,6 +179,8 @@ export function titleForTab(tab: Tab) {
       return "Usage";
     case "cron":
       return "Cron Jobs";
+    case "incidents":
+      return "Incidents";
     case "skills":
       return "Skills";
     case "nodes":
@@ -212,6 +216,8 @@ export function subtitleForTab(tab: Tab) {
       return "";
     case "cron":
       return "Schedule wakeups and recurring agent runs.";
+    case "incidents":
+      return "System incidents timeline from gateway logs.";
     case "skills":
       return "Manage skill availability and API key injection.";
     case "nodes":

@@ -10,6 +10,7 @@ import { loadAgentSkills } from "./controllers/agent-skills.ts";
 import { loadAgents } from "./controllers/agents.ts";
 import { loadChannels } from "./controllers/channels.ts";
 import { loadHostelUsers } from "./controllers/hostel-users.ts";
+import { loadIncidents } from "./controllers/incidents.ts";
 import { loadChatHistory } from "./controllers/chat.ts";
 import {
   applyConfig,
@@ -62,6 +63,7 @@ import { renderCron } from "./views/cron.ts";
 import { renderDebug } from "./views/debug.ts";
 import { renderExecApprovalPrompt } from "./views/exec-approval.ts";
 import { renderGatewayUrlConfirmation } from "./views/gateway-url-confirmation.ts";
+import { renderIncidents } from "./views/incidents.ts";
 import { renderInstances } from "./views/instances.ts";
 import { renderLogs } from "./views/logs.ts";
 import { renderNodes } from "./views/nodes.ts";
@@ -354,6 +356,22 @@ export function renderApp(state: AppViewState) {
                 onFilterChange: (mode) => (state.cronFilterMode = mode),
                 onSearchChange: (query) => (state.cronSearchQuery = query),
                 onLastRunsToggle: () => (state.cronLastRunsExpanded = !state.cronLastRunsExpanded),
+              })
+            : nothing
+        }
+
+        ${
+          state.tab === "incidents"
+            ? renderIncidents({
+                loading: state.incidentsLoading,
+                error: state.incidentsError,
+                entries: state.incidentsEntries,
+                timeFilter: state.incidentsTimeFilter,
+                onRefresh: () => loadIncidents(state),
+                onTimeFilterChange: (filter) => {
+                  state.incidentsTimeFilter = filter;
+                  loadIncidents(state);
+                },
               })
             : nothing
         }
