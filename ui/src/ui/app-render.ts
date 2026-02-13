@@ -688,6 +688,10 @@ export function renderApp(state: AppViewState) {
                 error: state.agentsError,
                 agentsList: state.agentsList,
                 onRefresh: () => loadAgents(state),
+                search: state.agentGraphSearch,
+                filter: state.agentGraphFilter,
+                onSearchChange: (value) => (state.agentGraphSearch = value),
+                onFilterChange: (filter) => (state.agentGraphFilter = filter),
               })
             : nothing
         }

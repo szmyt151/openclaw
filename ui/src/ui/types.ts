@@ -1,3 +1,17 @@
+export type HostelUser = {
+  userId: string;
+  role: "administrator" | "pracownik" | "mieszkaniec";
+  permissions: string[];
+};
+
+export type IncidentEntry = {
+  ts: number;
+  severity: "info" | "warn" | "error";
+  type: "disconnect" | "connect" | "error" | "restart" | "login-fail";
+  channel?: string;
+  message: string;
+};
+
 export type ChannelsStatusSnapshot = {
   ts: number;
   channelOrder: string[];

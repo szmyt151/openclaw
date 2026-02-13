@@ -324,6 +324,33 @@ export class OpenClawApp extends LitElement {
   @state() logsMaxBytes = 250_000;
   @state() logsAtBottom = true;
 
+  // Agent Graph v3
+  @state() agentGraphSearch = "";
+  @state() agentGraphFilter: "all" | "hostel" | "locked" = "all";
+  @state() agentGraphSelectedNode: string | null = null;
+  @state() agentGraphFocusMode = false;
+
+  // Channels sections
+  @state() channelsAccountsExpanded = false;
+  @state() channelsUsersExpanded = false;
+  @state() hostelUsersLoading = false;
+  @state() hostelUsersError: string | null = null;
+  @state() hostelUsers: import("./types.js").HostelUser[] | null = null;
+
+  // Pairing Center
+  @state() pairingCenterExpanded = false;
+
+  // Cron Filters
+  @state() cronFilterMode: "all" | "enabled" | "failed" | "search" = "all";
+  @state() cronSearchQuery = "";
+  @state() cronLastRunsExpanded = false;
+
+  // Incidents
+  @state() incidentsLoading = false;
+  @state() incidentsError: string | null = null;
+  @state() incidentsEntries: import("./types.js").IncidentEntry[] = [];
+  @state() incidentsTimeFilter: "1h" | "6h" | "24h" = "6h";
+
   client: GatewayBrowserClient | null = null;
   private chatScrollFrame: number | null = null;
   private chatScrollTimeout: number | null = null;

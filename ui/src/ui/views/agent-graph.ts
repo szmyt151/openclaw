@@ -6,6 +6,10 @@ type Props = {
   error: string | null;
   agentsList: AgentsListResult | null;
   onRefresh: () => void;
+  search: string;
+  filter: "all" | "hostel" | "locked";
+  onSearchChange: (value: string) => void;
+  onFilterChange: (filter: "all" | "hostel" | "locked") => void;
 };
 
 function labelFor(agent: { id: string; name?: string; identity?: { name?: string } }) {
@@ -26,13 +30,45 @@ function securityLabel(agent: Record<string, unknown>) {
   return { text: `OPEN · deny ${denyCount}`, color: "#8a1c1c", bg: "#ffeaea" };
 }
 
-export function renderAgentGraph({ loading, error, agentsList, onRefresh }: Props) {
-  const agents = agentsList?.agents ?? [];
+export function renderAgentGraph({ loading, error, agentsList, onRefresh, search, filter, onSearchChange, onFilterChange }: Props) {
+  const allAgents = agentsList?.agents ?? [];
+
+  // Apply filters
+  let agents = allAgents;
+
+  // Filter by search
+  if (search.trim()) {
+    const searchLower = search.toLowerCase();
+    agents = agents.filter((a) =>
+      a.id.toLowerCase().includes(searchLower) ||
+      (a.name?.toLowerCase() ?? "").includes(searchLower) ||
+      (a.identity?.name?.toLowerCase() ?? "").includes(searchLower)
+    );
+  }
+
+  // Filter by type
+  if (filter === "hostel") {
+    agents = agents.filter((a) =>
+      a.id === "hostel-ops-manager" ||
+      a.id.startsWith("hostel-") ||
+      a.id === "email-clerk" ||
+      a.id === "building-dispatch" ||
+      a.id === "tenant-support" ||
+      a.id === "staff-coordinator" ||
+      a.id === "reporting-analyst"
+    );
+  } else if (filter === "locked") {
+    agents = agents.filter((a) => {
+      const sandbox = (a.sandbox ?? {}) as { mode?: string; workspaceAccess?: string };
+      return sandbox.mode === "all" && sandbox.workspaceAccess === "none";
+    });
+  }
+
   const edges = agents.flatMap((agent) => {
     const allowed = agent.subagents?.allowAgents ?? [];
     return allowed.map((child) => ({ from: agent.id, to: child }));
   });
-  const hostelAgents = agents.filter((a) => a.id === "hostel-ops-manager" || a.id.startsWith("hostel-") || a.id === "email-clerk" || a.id === "building-dispatch" || a.id === "tenant-support" || a.id === "staff-coordinator" || a.id === "reporting-analyst");
+  const hostelAgents = allAgents.filter((a) => a.id === "hostel-ops-manager" || a.id.startsWith("hostel-") || a.id === "email-clerk" || a.id === "building-dispatch" || a.id === "tenant-support" || a.id === "staff-coordinator" || a.id === "reporting-analyst");
 
   return html`
     <section class="panel">
@@ -44,10 +80,46 @@ export function renderAgentGraph({ loading, error, agentsList, onRefresh }: Prop
 
       <div class="panel-body">
         <p class="muted">Nodes = agenci. Krawędzie = kto może odpalać którego subagenta.</p>
+
+        <!-- Search bar -->
+        <div style="margin:12px 0;">
+          <input
+            type="text"
+            placeholder="Search agents by ID or name..."
+            .value=${search}
+            @input=${(e: Event) => onSearchChange((e.target as HTMLInputElement).value)}
+            style="width:100%;padding:8px 12px;border:1px solid var(--border-color);border-radius:8px;background:var(--bg-color);color:var(--text-color);"
+          />
+        </div>
+
+        <!-- Filter chips -->
+        <div style="display:flex;gap:8px;margin:12px 0;">
+          <button
+            class="chip ${filter === "all" ? "chip-primary" : ""}"
+            @click=${() => onFilterChange("all")}
+            style="cursor:pointer;border:1px solid var(--border-color);padding:6px 12px;border-radius:999px;background:${filter === "all" ? "var(--accent-color)" : "transparent"};color:${filter === "all" ? "white" : "var(--text-color)"};"
+          >
+            All (${allAgents.length})
+          </button>
+          <button
+            class="chip ${filter === "hostel" ? "chip-primary" : ""}"
+            @click=${() => onFilterChange("hostel")}
+            style="cursor:pointer;border:1px solid var(--border-color);padding:6px 12px;border-radius:999px;background:${filter === "hostel" ? "var(--accent-color)" : "transparent"};color:${filter === "hostel" ? "white" : "var(--text-color)"};"
+          >
+            Hostel scope (${hostelAgents.length})
+          </button>
+          <button
+            class="chip ${filter === "locked" ? "chip-primary" : ""}"
+            @click=${() => onFilterChange("locked")}
+            style="cursor:pointer;border:1px solid var(--border-color);padding:6px 12px;border-radius:999px;background:${filter === "locked" ? "var(--accent-color)" : "transparent"};color:${filter === "locked" ? "white" : "var(--text-color)"};"
+          >
+            Locked only
+          </button>
+        </div>
+
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 12px 0;">
-          <span class="mono" style="font-size:12px;padding:4px 8px;border:1px solid var(--border-color);border-radius:8px;">agents: ${agents.length}</span>
+          <span class="mono" style="font-size:12px;padding:4px 8px;border:1px solid var(--border-color);border-radius:8px;">showing: ${agents.length}</span>
           <span class="mono" style="font-size:12px;padding:4px 8px;border:1px solid var(--border-color);border-radius:8px;">edges: ${edges.length}</span>
-          <span class="mono" style="font-size:12px;padding:4px 8px;border:1px solid var(--border-color);border-radius:8px;">hostel-scope: ${hostelAgents.length}</span>
         </div>
         <div class="grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;">
           ${agents.map((agent) => {
