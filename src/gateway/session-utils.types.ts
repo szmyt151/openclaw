@@ -54,6 +54,20 @@ export type GatewayAgentRow = {
     avatar?: string;
     avatarUrl?: string;
   };
+  subagents?: {
+    allowAgents?: string[];
+  };
+  sandbox?: {
+    mode?: string;
+    workspaceAccess?: string;
+  };
+  tools?: {
+    deny?: string[];
+  };
+  bindings?: Array<{
+    channel: string;
+    accountId?: string;
+  }>;
 };
 
 export type SessionPreviewItem = {
